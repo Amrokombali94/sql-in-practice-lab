@@ -25,15 +25,19 @@ module.exports = {
         .catch(err => console.log(err))
     },
     getPendingAppointments: (req, res) =>{
-        sequelize.qu
+        sequelize.query(`
+            SELECT * FROM cc_appointments WHERE approved=false ORDER BY date desc;
+        `)
+        .then(dbRes => res.status(200).send(dbRes[0]))
+        .catch(err => console.log(err))
 
     },
 
     getPastAppointments:(req, res) => {
         sequelize.query(`
-        SELECT a.appt_id, a.date, a.service_type, a.notes, u.first_name, u.last_name 
-        FROM cc_appointments AS a JOIN cc_users AS u ON
-        approved=TRUE AND completed=TRUE ORDER BY date desc
+            SELECT a.appt_id, a.date, a.service_type, a.notes, u.first_name, u.last_name 
+            FROM cc_appointments AS a JOIN cc_users AS u ON
+            approved=TRUE AND completed=TRUE ORDER BY date desc
         `)
         .then(dbRes => res.status(200).send(dbRes[0]))
         .catch(err => console.log(err))
@@ -53,16 +57,32 @@ module.exports = {
     approveAppointment: (req, res) => {
         let {apptId} = req.body
     
-        sequelize.query(`*****YOUR CODE HERE*****
-        
+        sequelize.query(`
+        UPDATE cc_appointments SET
+                approved = true
+                WHERE appt_Id = ${apptId};
         insert into cc_emp_appts (emp_id, appt_id)
         values (${nextEmp}, ${apptId}),
         (${nextEmp + 1}, ${apptId});
         `)
-            .then(dbRes => {
-                res.status(200).send(dbRes[0])
-                nextEmp += 2
-            })
-            .catch(err => console.log(err))
+        .then(dbRes => {
+            res.status(200).send(dbRes[0])
+            nextEmp += 2
+        })
+        .catch(err => console.log(err))
+    },
+    completeAppointment: (req, res) => {
+        let {apptId} = req.body
+    
+        sequelize.query(`
+        UPDATE cc_appointments SET 
+            completed=true
+            WHERE appt_Id = ${apptId};
+        `)
+        .then(dbRes => {
+            res.status(200).send(dbRes[0])
+            nextEmp += 2
+        })
+        .catch(err => console.log(err))
     }
 }
